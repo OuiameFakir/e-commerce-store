@@ -1,102 +1,95 @@
-import { useEffect, useState } from "react"
-import Product from "./Product"
-import Navbar from "./nav"
+import { useEffect, useState } from "react";
+import Product from "./Product";
+import Navbar from "./nav";
 
+export default function ProductList() {
+  const [productList, setProductList] = useState([]);
+  const [searchInput, setSearchInput] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState("");
+  const [loading, setLoading] = useState(true);
 
-export default function ProductList (){
-
-    const [productList, setProductList] = useState([])
-    // const [category, setCategory] = useState([])
-    const [searchInput, setSearchInput] = useState('')
-    const [selectedCategory, setSelectedCategory] =useState('') 
-
-    const getProduct =()=>{
-       fetch('https://fakestoreapi.com/products')
-            .then(Response => Response.json())
-            .then(response=> setProductList(response)) 
+  const getProduct = async () => {
+    try {
+      const response = await fetch("https://fakestoreapi.com/products");
+      if (!response.ok) {
+        throw new Error("Failed to fetch data");
+      }
+      const data = await response.json();
+      setProductList(data);
+      setLoading(false);
+    } catch (error) {
+      console.error("Error fetching data:", error);
+      setLoading(false);
     }
-    
-    // const getCategory =()=>{
-    //     fetch('https://fakestoreapi.com/products/categories')
-    //          .then(Response => Response.json())
-    //          .then(response=> setCategory(response)) 
-    //  }
+  };
 
-    useEffect(() =>{
-        getProduct()
-        // getCategory()
-    },[])
-    const handleSearch =(e, val)=>{
-        e.preventDefault()
-        setSearchInput(val)
-        setSelectedCategory(undefined )
+  useEffect(() => {
+    getProduct();
+  }, []);
 
+  const handleSearch = (e, val) => {
+    e.preventDefault();
+    setSearchInput(val);
+    setSelectedCategory(undefined);
+  };
+  const handleSearchC = (e, category) => {
+    e.preventDefault();
+    setSelectedCategory(category);
+    console.log(category);
+  };
+  const handleReset = (e) => {
+    e.preventDefault();
+    setSearchInput("");
+    setSelectedCategory(undefined);
+  };
+
+  const displayProduct = () => {
+    let productsTemp;
+    if (searchInput !== (undefined && "")) {
+      productsTemp = productList.filter(
+        (product) =>
+          product.title.includes(searchInput) ||
+          product.id.toString().includes(searchInput)
+      );
     }
-    const handleSearchC = (e , category)=>{
-        e.preventDefault()
-        setSelectedCategory(category)
-        console.log(category)
+    if (selectedCategory !== (undefined && "all")) {
+      productsTemp = productsTemp.filter((product) => {
+        return product.category === selectedCategory;
+      });
     }
-    const handleReset=(e) => {
-        e.preventDefault()
-        setSearchInput('')
-        setSelectedCategory(undefined)
+    if (selectedCategory === "all") {
+      return productList.map((product, key) => {
+        return <Product product={product} key={key} />;
+      });
     }
-    // const displayCategories = ()=>{
-    //     return category.map((category,key) => 
-    //         <button key={key} className="btn"  onClick={(e) => handleSearchC(e , category)}>
-    //             {category}
-    //         </button>
-            
-    // )
-    // }
-    const displayProduct = ()=>{
-            let productsTemp 
-            if (searchInput !== (undefined && '')) {
-                productsTemp = productList.filter(product =>
-                    product.title.includes(searchInput)
-                    || product.id.toString().includes(searchInput)
-                    || product.description.includes(searchInput)
-                )
-            }
-            if (selectedCategory !== (undefined && 'all')) {
-                productsTemp = productsTemp.filter(product => {
-                    return product.category === selectedCategory
-                })
-            }
-            if(selectedCategory==='all'){
-                return productList.map((product, key)=>{
-                    return <Product product={product} key={key} />
-                })
-            }
-            
 
-        if(productsTemp.length > 0){
-
-            return productsTemp.map((product, key)=>{
-                return <Product product={product} key={key} />
-            })
-        }
-        return <div className="jumbotron">
-                    <div className="container ">
-                        <h1 className="display-4">Ooops SORRY !</h1>
-                        <p className="lead">No Items are Available For the Moment that Match Your Search</p>
-                    </div>
-                </div>
-    
-
+    if (productsTemp.length > 0) {
+      return productsTemp.map((product, key) => {
+        return <Product product={product} key={key} />;
+      });
     }
-    return <div>
-        <Navbar onSearchClick={handleSearch} onResetClick={handleReset} onSearCateg={handleSearchC}/>
-    <div className="container-fluid p-5">
-
-    <h5>Available Products</h5>
-    <div className="row align-items-center">
-        {displayProduct()}
-    
+    return productList.map((product, key) => {
+      return <Product product={product} key={key} />;
+    });
+  };
+  return (
+    <div>
+      <Navbar
+        onSearchClick={handleSearch}
+        onResetClick={handleReset}
+        onSearCateg={handleSearchC}
+      />
+      <div
+        style={{
+          display: "flex",
+          flexWrap: "wrap",
+          flexDirection: "row",
+          gap: "1rem",
+          padding: "2rem",
+        }}
+      >
+        {loading ? <p>Loading...</p> : displayProduct()}
+      </div>
     </div>
-   
-  
-    </ div>
-    </div>
+  );
 }
