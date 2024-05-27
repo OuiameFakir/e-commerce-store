@@ -11,7 +11,7 @@ export default function Product({ product }) {
 
   return (
     <div>
-      <div className="card align-items-center" style={{ width: "24rem" }}>
+      <div className="card align-items-center" style={{ width: "23rem" }}>
         <div className="row">
           <img
             className="card-img-top pt-2 col-11"
